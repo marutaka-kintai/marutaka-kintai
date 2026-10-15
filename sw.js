@@ -1,5 +1,5 @@
 'use strict';
-const CACHE = 'attendance-pwa-v2-20261015';
+const CACHE = 'attendance-pwa-v3-20261015';
 const OFFLINE = ['./index.html','./app.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(OFFLINE)).then(() => self.skipWaiting()));
