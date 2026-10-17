@@ -81,12 +81,19 @@ $('confirmKey').onclick=()=>{
   const next=$('newKey').value.trim();
   if(next.length<10)return alert('新しい専用キーを入力してください');
   if(next===key())return alert('現在と同じ専用キーです');
-  if(sending||events.some(e=>!e.synced))return alert('未送信または送信中の打刻があります。先に同期を完了してください。');
-  const active=currentEvents();
-  if(active.length&&active[active.length-1].action==='start')return alert('勤務中のため変更できません。先に勤務終了を打刻してください。');
-  if(!confirm('この端末で使う専用キーを変更します。Googleの設定シートの専用キーは変更されません。よろしいですか？'))return;
-  try{localStorage.setItem(KEY_STORAGE,next);}catch(e){return alert('保存に失敗しました。');}
-  blockedId='';$('keyEditor').hidden=true;$('newKey').value='';$('status').textContent='専用キーを変更しました。新しいIDで打刻できます。';render();
+  // 送信処理の途中では旧IDのデータがGoogle側に届く可能性があるため変更しない。
+  if(sending)return alert('現在送信中です。10秒ほど待ってから、もう一度変更してください。');
+  const oldCount=events.length;
+  const message='この端末に残っている過去の打刻'+oldCount+'件（未送信を含む）をすべて破棄し、新しいIDで使い始めます。\n\n破棄した未送信打刻は復元できません。Googleに登録済みの記録は削除されません。\n\n実行しますか？';
+  if(!confirm(message))return;
+  try {
+    // 旧IDの未送信記録を再送しない。新しいIDは端末内だけ変更する。
+    localStorage.setItem(EVENTS_STORAGE,'[]');
+    localStorage.setItem(KEY_STORAGE,next);
+    events=[];
+    blockedId='';
+    location.reload(); // 古い照会・画面状態を引き継がない
+  } catch(e) { alert('端末への保存に失敗しました。ブラウザの保存設定を確認してください。'); }
 };
 window.addEventListener('online',()=>{render();sync();});
 window.addEventListener('offline',render);
