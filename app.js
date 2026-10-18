@@ -72,6 +72,17 @@ window.addEventListener('message',ev=>{
   if(p.ok){if(item){item.synced=true;persist();}blockedId='';$('status').textContent='スプレッドシートに反映しました';setTimeout(()=>sync(),250);}
   else{blockedId=p.eventId;$('status').textContent='同期エラー：'+String(p.error||'不明');$('debug').textContent='送信エラーシートも確認してください。';}
 });
+$('resetThisPhone').onclick=()=>{
+  if(sending){alert('送信処理中です。10秒ほど待ってから操作してください。');return;}
+  const total=events.length, pending=events.filter(e=>!e.synced).length;
+  if(!confirm('【この端末だけ】過去の打刻 '+total+' 件（未送信 '+pending+' 件）を破棄します。\nGoogleに登録済みのデータは消えません。\n他の従業員のスマホには影響しません。\n\n本当に破棄しますか？'))return;
+  if(!confirm('最終確認：この端末の未送信記録は復元できません。実行しますか？'))return;
+  try{
+    localStorage.setItem(EVENTS_STORAGE,'[]');
+    events=[];blockedId='';
+    location.reload();
+  }catch(err){alert('端末の記録を消去できませんでした：'+err.message);}
+};
 $('saveKey').onclick=()=>{const k=$('key').value.trim();if(k.length<10)return alert('専用キーを入力してください');localStorage.setItem(KEY_STORAGE,k);render();sync();};
 $('punch').onclick=add;
 $('sync').onclick=()=>sync(true);
